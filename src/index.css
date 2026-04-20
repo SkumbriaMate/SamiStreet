@@ -1,0 +1,188 @@
+@font-face {
+  font-family: 'BPG ExtraSquare Mtavruli';
+  src: url('/bpg_extrasquare_mtavruli_2009.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    scroll-behavior: auto;
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+  body {
+    margin: 0;
+    background: #0a0a08;
+    color: #f5f0e8;
+    font-family: 'BPG ExtraSquare Mtavruli', system-ui, sans-serif;
+    overflow-x: hidden;
+    max-width: 100%;
+    position: relative;
+  }
+  a,
+  button {
+    cursor: pointer;
+  }
+}
+
+@keyframes floatY {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+/* About story — scroll hint chevron */
+@keyframes aboutScrollChevron {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(8px);
+    opacity: 0.95;
+  }
+}
+
+.about-scroll-hint-icon {
+  animation: aboutScrollChevron 1.45s ease-in-out infinite;
+}
+
+.float-badge-1 {
+  animation: floatY 4s ease-in-out infinite;
+}
+
+.float-badge-2 {
+  animation: floatY 4s ease-in-out infinite 0.8s;
+}
+
+@keyframes scrollX {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: scrollX 18s linear infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.map-pin-bounce {
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.hero-grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+.map-grid-bg {
+  background-image:
+    linear-gradient(rgba(90, 144, 104, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(90, 144, 104, 0.08) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(50px);
+}
+
+.menu-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: #5a9068;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s ease;
+}
+
+.menu-card:hover::after {
+  transform: scaleX(1);
+}
+
+.menu-perspective {
+  perspective: 900px;
+}
+
+.loc-perspective {
+  transform-style: preserve-3d;
+}
+
+.about-story-word {
+  display: inline-block;
+  /* Explicit stack: Georgian Mtavruli (Playfair token in Tailwind is aliased, but some browsers need this). */
+  font-family: 'BPG ExtraSquare Mtavruli', system-ui, sans-serif;
+  color: rgba(245, 240, 232, 0.2);
+  will-change: color, transform, opacity;
+}
+
+.menu-pin {
+  position: relative;
+  overflow: hidden;
+  perspective: 1600px;
+  background: #111109;
+}
+
+@media (min-width: 768px) {
+  .menu-pin {
+    height: 100vh;
+  }
+}
+
+.menu-track {
+  will-change: transform;
+  transform-style: preserve-3d;
+}
+
+.menu-card {
+  transform-style: preserve-3d;
+}
+
+.menu-card-emoji {
+  will-change: transform;
+}
+
+/* Mobile menu: row perspective + cards keep 3D flip stable (no “blank tile” phase) */
+.menu-mobile-stack .menu-mobile-row {
+  perspective: 980px;
+  transform: translateZ(0);
+}
+
+.menu-mobile-stack .menu-card-mobile {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+

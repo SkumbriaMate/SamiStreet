@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sami Street Bistro · Kutaisi, Georgia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { orange: '#E8771A', green: '#3d6b4a', greenLight: '#5a9068' },
+            surface: { black: '#0a0a08', dark: '#111109' },
+            cream: '#f5f0e8',
+            muted: '#888880',
+          },
+          fontFamily: {
+            bebas: ['"Bebas Neue"', 'sans-serif'],
+            playfair: ['"Playfair Display"', 'serif'],
+            dm: ['"DM Sans"', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      cursor: none;
+      background: #0a0a08;
+      color: #f5f0e8;
+      font-family: "DM Sans", sans-serif;
+      overflow-x: hidden;
+    }
+    a, button { cursor: none; }
+    #cursor {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      background: #E8771A;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.15s ease-out;
+      will-change: transform;
+    }
+    #cursor-ring {
+      position: fixed;
+      width: 36px;
+      height: 36px;
+      border: 2px solid #E8771A;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      will-change: transform;
+    }
+    #cursor.cursor-hover { transform: translate(-50%, -50%) scale(2.5); }
+    @keyframes floatY {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+    .float-badge-1 { animation: floatY 4s ease-in-out infinite; }
+    .float-badge-2 { animation: floatY 4s ease-in-out infinite 0.8s; }
+    @keyframes scrollX {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .marquee-track { animation: scrollX 18s linear infinite; }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .map-pin-bounce { animation: bounce 2s ease-in-out infinite; }
+    .hero-grid-bg {
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .map-grid-bg {
+      background-image:
+        linear-gradient(rgba(232,119,26,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232,119,26,0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .reveal { opacity: 0; transform: translateY(50px); }
+    .menu-card::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 2px;
+      width: 100%;
+      background: #E8771A;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.35s ease;
+    }
+    .menu-card:hover::after { transform: scaleX(1); }
+    .about-card-shell {
+      border-radius: 4px;
+      background: #111109;
+      overflow: hidden;
+    }
+    .about-card-top {
+      height: 3px;
+      width: 100%;
+      background: linear-gradient(90deg, #E8771A, #5a9068);
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <div id="cursor" aria-hidden="true"></div>
+  <div id="cursor-ring" aria-hidden="true"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const MARQUEE_ITEMS = [
+      'FRESH INGREDIENTS',
+      'STREET FOOD',
+      'BOWLS & WRAPS',
+      'HOT DOGS',
+      "KUTAISI'S FAVORITE",
+      'SAMI STREET BISTRO',
+    ];
+
+    const MENU_ITEMS = [
+      { emoji: '🥗', cat: 'Signature Bowl', name: 'Georgian Chicken Bowl', desc: 'Fresh potatoes, chicken, greens, tomatoes, pita', price: '₾12', badge: 'Best Seller', badgeStyle: 'green' },
+      { emoji: '🌯', cat: 'Wraps', name: 'Veggie Wrap', desc: 'Grilled vegetables, herbs, house sauce in lavash', price: '₾9', badge: 'Vegan', badgeStyle: 'green' },
+      { emoji: '🌭', cat: 'Hot Dogs', name: 'Sami Hot Dog', desc: 'Juicy sausage, toasted bun, crispy onions, mustard', price: '₾8' },
+      { emoji: '🍟', cat: 'Sides', name: 'Crispy Fries', desc: 'Golden seasoned fries, dipping sauce', price: '₾5' },
+      { emoji: '🥣', cat: 'Bowls', name: 'Spicy Tomato Bowl', desc: 'Tomato base, herbs, spiced beans', price: '₾11', badge: 'Spicy 🌶', badgeStyle: 'green' },
+      { emoji: '🥤', cat: 'Drinks', name: 'Fresh Lemonade', desc: 'Citrus, herbs, sparkling water', price: '₾4' },
+    ];
+
+    const FILTERS = ['All', 'Bowls', 'Wraps', 'Hot Dogs'];
+
+    function App() {
+      const [scrolled, setScrolled] = useState(false);
+      const [menuFilter, setMenuFilter] = useState('All');
+      const cursorRef = useRef(null);
+      const ringRef = useRef(null);
+      const mouse = useRef({ x: 0, y: 0 });
+      const ring = useRef({ x: 0, y: 0 });
+      const rafRef = useRef(null);
+      const hoverRef = useRef(false);
+
+      useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 60);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+        return () => window.removeEventListener('scroll', onScroll);
+      }, []);
+
+      useEffect(() => {
+        const cursor = document.getElementById('cursor');
+        const ringEl = document.getElementById('cursor-ring');
+        cursorRef.current = cursor;
+        ringRef.current = ringEl;
+        ring.current = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+        mouse.current = { ...ring.current };
+
+        const lerp = (a, b, t) => a + (b - a) * t;
+
+        const tick = () => {
+          ring.current.x = lerp(ring.current.x, mouse.current.x, 0.12);
+          ring.current.y = lerp(ring.current.y, mouse.current.y, 0.12);
+          if (cursor) {
+            cursor.style.left = `${mouse.current.x}px`;
+            cursor.style.top = `${mouse.current.y}px`;
+          }
+          if (ringEl) {
+            ringEl.style.left = `${ring.current.x}px`;
+            ringEl.style.top = `${ring.current.y}px`;
+          }
+          rafRef.current = requestAnimationFrame(tick);
+        };
+        rafRef.current = requestAnimationFrame(tick);
+
+        const onMove = (e) => {
+          mouse.current.x = e.clientX;
+          mouse.current.y = e.clientY;
+        };
+
+        const setHover = (on) => {
+          hoverRef.current = on;
+          if (cursor) cursor.classList.toggle('cursor-hover', on);
+        };
+
+        const onOver = (e) => {
+          const t = e.target.closest('a, button, [data-cursor-hover]');
+          setHover(!!t);
+        };
+
+        window.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseover', onOver);
+
+        return () => {
+          cancelAnimationFrame(rafRef.current);
+          window.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseover', onOver);
+        };
+      }, []);
+
+      useEffect(() => {
+        if (typeof gsap === 'undefined' || !gsap.registerPlugin) return;
+        gsap.registerPlugin(ScrollTrigger);
+
+        const tl = gsap.timeline({ delay: 0.2 });
+        tl.fromTo(
+          '.hero-tag',
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }
+        )
+          .fromTo(
+            '.hero-title',
+            { opacity: 0, y: 40 },
+            { opacity: 1, y: 0, duration: 0.85, ease: 'power3.out' },
+            '-=0.4'
+          )
+          .fromTo(
+            '.hero-sub',
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' },
+            '-=0.4'
+          )
+          .fromTo(
+            '.hero-actions',
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' },
+            '-=0.4'
+          )
+          .fromTo(
+            '.hero-visual',
+            { opacity: 0 },
+            { opacity: 1, duration: 1, ease: 'power3.out' },
+            '-=0.4'
+          );
+
+        const reveals = gsap.utils.toArray('.reveal');
+        reveals.forEach((el, i) => {
+          gsap.fromTo(
+            el,
+            { opacity: 0, y: 50 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.8,
+              delay: (i % 3) * 0.1,
+              ease: 'power3.out',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top 88%',
+                toggleActions: 'play none none none',
+              },
+            }
+          );
+        });
+
+        requestAnimationFrame(() => ScrollTrigger.refresh());
+
+        return () => ScrollTrigger.getAll().forEach((t) => t.kill());
+      }, []);
+
+      const navBg = scrolled
+        ? 'bg-[rgba(10,10,8,0.97)] backdrop-blur-[12px]'
+        : 'bg-gradient-to-b from-[rgba(10,10,8,0.95)] to-transparent';
+
+      return (
+        <>
+          <header
+            className={`fixed left-0 right-0 top-0 z-[100] px-6 py-6 transition-all duration-300 md:px-[60px] md:py-6 ${navBg}`}
+          >
+            <nav className="mx-auto flex max-w-[1400px] items-center justify-between gap-4">
+              <a href="#" className="group flex items-center gap-2 font-playfair text-2xl font-bold tracking-tight text-cream md:text-[26px]">
+                SAMI
+                <span className="inline-block h-2 w-2 rounded-full bg-brand-orange" aria-hidden="true" />
+              </a>
+              <div className="hidden items-center gap-10 md:flex">
+                <a
+                  href="#about"
+                  className="text-[13px] font-medium uppercase tracking-[2px] text-muted transition-colors hover:text-brand-orange"
+                >
+                  About
+                </a>
+                <a
+                  href="#menu"
+                  className="text-[13px] font-medium uppercase tracking-[2px] text-muted transition-colors hover:text-brand-orange"
+                >
+                  Menu
+                </a>
+                <a
+                  href="#location"
+                  className="text-[13px] font-medium uppercase tracking-[2px] text-muted transition-colors hover:text-brand-orange"
+                >
+                  Find Us
+                </a>
+              </div>
+              <a
+                href="tel:55705331"
+                className="shrink-0 rounded-[2px] bg-brand-orange px-5 py-2.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"
+              >
+                Call Now
+              </a>
+            </nav>
+          </header>
+
+          <main>
+            <section className="relative flex min-h-screen items-center overflow-hidden pt-28 md:pt-0">
+              <div
+                className="pointer-events-none absolute inset-0 hero-grid-bg"
+                aria-hidden="true"
+              />
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    'radial-gradient(ellipse 50% 45% at 70% 50%, rgba(61,107,74,0.35) 0%, transparent 55%), radial-gradient(ellipse 40% 40% at 20% 80%, rgba(232,119,26,0.22) 0%, transparent 50%)',
+                }}
+                aria-hidden="true"
+              />
+
+              <div className="relative z-[2] mx-auto flex w-full max-w-[1400px] flex-col px-6 pb-20 md:flex-row md:items-center md:px-[60px] md:pb-0">
+                <div className="max-w-[700px] flex-1">
+                  <p className="hero-tag mb-6 flex items-center gap-4 text-xs font-medium uppercase tracking-[3px] text-brand-orange opacity-0">
+                    <span className="h-px w-[30px] bg-brand-orange" />
+                    Kutaisi · Georgia
+                  </p>
+                  <h1 className="hero-title font-bebas leading-[0.92] opacity-0" style={{ fontSize: 'clamp(72px, 10vw, 130px)' }}>
+                    <span className="text-cream">FRESH</span>
+                    <br />
+                    <span className="block text-brand-orange">FAST</span>
+                    <br />
+                    <span className="text-cream">FABULOUS</span>
+                  </h1>
+                  <p className="hero-sub mt-6 max-w-lg text-base font-light leading-relaxed text-muted opacity-0">
+                    <span className="font-medium text-cream/90">Fresh Fast Fabulous.</span>{' '}
+                    Sami Street Bistro brings bold Georgian street food to Kutaisi—sizzling bowls, wraps, and classics
+                    made fast, with ingredients picked for flavor and attitude served with three green birds of pride.
+                  </p>
+                  <div className="hero-actions mt-10 flex flex-wrap items-center gap-4 opacity-0">
+                    <a
+                      href="#menu"
+                      className="inline-flex rounded-[2px] bg-brand-orange px-8 py-3.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"
+                    >
+                      View Menu
+                    </a>
+                    <a
+                      href="#location"
+                      className="text-sm font-medium text-cream underline-offset-4 transition-colors hover:text-brand-orange"
+                    >
+                      Find Us →
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className="hero-visual pointer-events-none absolute bottom-0 right-0 top-0 hidden w-1/2 opacity-0 md:block"
+                aria-hidden="true"
+              >
+                <div className="relative flex h-full items-center justify-center pr-[60px]">
+                  <div
+                    className="relative flex h-[min(520px,70vh)] w-[min(520px,45vw)] items-center justify-center rounded-full"
+                    style={{
+                      background: 'radial-gradient(circle at 35% 35%, #5a9068 0%, #3d6b4a 45%, #E8771A 100%)',
+                    }}
+                  >
+                    <span
+                      className="pointer-events-none select-none leading-none"
+                      style={{ fontSize: 'clamp(120px, 18vw, 220px)', opacity: 0.03 }}
+                      aria-hidden="true"
+                    >
+                      🐦🐦🐦
+                    </span>
+                    <div className="float-badge-1 absolute right-4 top-8 rounded-full border-2 border-brand-orange bg-surface-dark px-4 py-2 text-xs font-semibold text-cream">
+                      🟢 Open Now
+                    </div>
+                    <div className="float-badge-2 absolute bottom-10 left-6 rounded-full border-2 border-brand-orange bg-surface-dark px-4 py-2 text-xs font-semibold text-cream">
+                      ⭐ Top Rated
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <div className="overflow-hidden bg-brand-orange py-3">
+              <div className="marquee-track flex w-max whitespace-nowrap">
+                {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, idx) => (
+                  <span key={idx} className="flex items-center font-bebas text-[20px] uppercase tracking-[4px] text-black">
+                    <span className="px-6">{item}</span>
+                    <span className="text-black/60">✦</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <section id="about" className="border-t border-white/[0.06] bg-surface-black px-6 py-20 md:px-[60px] md:py-[100px]">
+              <div className="mx-auto grid max-w-[1200px] items-center gap-16 md:grid-cols-2 md:gap-[100px]">
+                <div>
+                  <p className="reveal mb-4 flex items-center gap-4 text-xs font-semibold uppercase tracking-[4px] text-brand-orange">
+                    <span className="h-px w-6 bg-brand-orange" style={{ width: 24 }} />
+                    Our Story
+                  </p>
+                  <h2 className="reveal font-playfair text-4xl font-bold leading-tight text-cream md:text-[2.75rem]">
+                    Where street food meets soul
+                  </h2>
+                  <p className="reveal mt-6 text-base font-light leading-relaxed text-muted">
+                    We built Sami Street Bistro for late-night cravings and midday fuel—the kind of place where neon
+                    energy meets honest cooking. Every bowl and wrap is a love letter to Kutaisi: loud flavors, quick
+                    service, and a crew that treats you like family.
+                  </p>
+                  <div className="mt-10 grid grid-cols-2 gap-6">
+                    {[
+                      { num: '3', label: 'Birds. One Vision.' },
+                      { num: '100%', label: 'Fresh Daily' },
+                      { num: '15+', label: 'Menu Items' },
+                      { num: '★4.8', label: 'Customer Rating' },
+                    ].map((s) => (
+                      <div key={s.label} className="reveal border-l-2 border-brand-orange pl-4">
+                        <div className="font-bebas text-[52px] leading-none text-brand-orange">{s.num}</div>
+                        <div className="mt-1 text-[12px] font-medium uppercase tracking-wide text-muted">
+                          <span className="text-brand-orange/70">/</span> {s.label}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="reveal about-card-shell">
+                  <div className="about-card-top" aria-hidden="true" />
+                  <div className="p-10">
+                    <div className="text-[80px] leading-none">🐦🐦🐦</div>
+                    <h3 className="mt-6 font-playfair text-2xl font-bold text-cream">The Sami Promise</h3>
+                    <p className="mt-4 text-sm font-light leading-relaxed text-muted">
+                      Three birds on the logo, one promise in the kitchen: food that is fresh, fast, and fabulous—never
+                      boring, never apologetic. We source local where we can, season boldly, and serve with street-side
+                      swagger.
+                    </p>
+                    <div className="mt-8 flex flex-wrap gap-2">
+                      {['Fresh', 'Fast', 'Fabulous', 'Local', 'Bold'].map((t) => (
+                        <span
+                          key={t}
+                          className="rounded-full border border-brand-orange/25 bg-brand-orange/10 px-4 py-2 text-xs font-medium text-brand-orange"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="menu" className="bg-surface-dark px-6 py-20 md:px-[60px] md:py-[100px]">
+              <div className="mx-auto max-w-[1200px]">
+                <div className="mb-12 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+                  <div className="reveal">
+                    <p className="mb-3 flex items-center gap-3 text-xs font-semibold uppercase tracking-[4px] text-brand-orange">
+                      <span className="h-px w-6 bg-brand-orange" style={{ width: 24 }} />
+                      Menu
+                    </p>
+                    <h2 className="font-playfair text-4xl font-bold text-cream md:text-[2.5rem]">Our Menu</h2>
+                  </div>
+                  <div className="reveal flex flex-wrap gap-2">
+                    {FILTERS.map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => setMenuFilter(f)}
+                        className={`rounded-[2px] border px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                          menuFilter === f
+                            ? 'border-brand-orange bg-brand-orange text-black'
+                            : 'border-white/10 bg-transparent text-muted hover:border-brand-orange hover:text-brand-orange'
+                        }`}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-[2px] md:grid-cols-3">
+                  {MENU_ITEMS.map((item) => (
+                    <article
+                      key={item.name}
+                      className="menu-card reveal relative bg-black p-8 transition-colors hover:bg-[#141412]"
+                    >
+                      <div className="text-[44px] leading-none">{item.emoji}</div>
+                      <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-orange">{item.cat}</p>
+                      <h3 className="mt-2 font-playfair text-xl font-bold text-cream">{item.name}</h3>
+                      <p className="mt-2 text-[13px] font-light leading-relaxed text-muted">{item.desc}</p>
+                      <div className="mt-6 flex items-center justify-between gap-3">
+                        <span className="font-bebas text-[28px] text-brand-orange">{item.price}</span>
+                        {item.badge && (
+                          <span
+                            className={`rounded border px-2.5 py-1 text-[11px] font-semibold ${
+                              item.badgeStyle === 'green'
+                                ? 'border-brand-greenLight text-brand-greenLight'
+                                : 'border-brand-orange text-brand-orange'
+                            }`}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section id="location" className="border-t border-white/[0.06] bg-surface-black px-6 py-20 md:px-[60px] md:py-[100px]">
+              <div className="mx-auto grid max-w-[1200px] gap-12 md:grid-cols-2 md:gap-16">
+                <div>
+                  {[
+                    {
+                      icon: '📍',
+                      label: 'Address',
+                      value: 'Admasheneblis Street 111, Kutaisi, Georgia',
+                      link: null,
+                    },
+                    {
+                      icon: '📞',
+                      label: 'Phone',
+                      value: '+995 557 05 33 11',
+                      link: 'tel:+995557053311',
+                    },
+                    {
+                      icon: '🕐',
+                      label: 'Hours',
+                      value: 'grid',
+                    },
+                    {
+                      icon: '💬',
+                      label: 'Messenger',
+                      value: 'Sami Street Bistro',
+                      link: null,
+                    },
+                  ].map((row, i) => (
+                    <div key={row.label}>
+                      <div className={`reveal flex gap-4 py-6 ${i > 0 ? 'border-t border-white/[0.06]' : ''}`}>
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded bg-brand-orange/15 text-lg">
+                          {row.icon}
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wider text-brand-orange">{row.label}</p>
+                          {row.value === 'grid' ? (
+                            <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-cream">
+                              <div>
+                                <p className="text-muted">Mon–Fri</p>
+                                <p className="font-medium">10:00–22:00</p>
+                              </div>
+                              <div>
+                                <p className="text-muted">Sat–Sun</p>
+                                <p className="font-medium">11:00–23:00</p>
+                              </div>
+                            </div>
+                          ) : row.link ? (
+                            <a href={row.link} className="mt-1 block text-base text-cream hover:text-brand-orange">
+                              {row.value}
+                            </a>
+                          ) : (
+                            <p className="mt-1 text-base text-cream">{row.value}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="reveal relative flex h-[400px] flex-col items-center justify-center overflow-hidden rounded bg-surface-dark map-grid-bg p-8 text-center">
+                  <div className="map-pin-bounce text-4xl">📍</div>
+                  <p className="mt-4 font-playfair text-xl font-bold text-cream">Sami Street Bistro</p>
+                  <p className="mt-2 max-w-xs text-sm text-muted">Admasheneblis Street 111, Kutaisi, Georgia</p>
+                  <a
+                    href="https://www.google.com/maps/search/?api=1&query=Admasheneblis+Street+111+Kutaisi+Georgia"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-8 inline-flex rounded-[2px] bg-brand-orange px-6 py-3 text-sm font-semibold text-black transition-opacity hover:opacity-90"
+                  >
+                    Open in Maps →
+                  </a>
+                </div>
+              </div>
+            </section>
+          </main>
+
+          <footer className="border-t border-white/[0.06] bg-surface-black px-6 py-12 md:px-[60px]">
+            <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-8 text-center md:flex-row md:justify-between md:text-left">
+              <div className="font-playfair text-lg font-bold">
+                <span className="text-cream">SAMI </span>
+                <span className="text-brand-orange">STREET BISTRO</span>
+              </div>
+              <p className="text-xs text-muted">© 2025 Sami Street Bistro · Kutaisi, Georgia</p>
+              <div className="flex gap-3">
+                <a
+                  href="#"
+                  aria-label="Facebook"
+                  className="flex h-[38px] w-[38px] items-center justify-center rounded-full border border-white/15 text-sm text-muted transition-colors hover:border-brand-orange hover:text-brand-orange"
+                >
+                  f
+                </a>
+                <a
+                  href="#"
+                  aria-label="Instagram"
+                  className="flex h-[38px] w-[38px] items-center justify-center rounded-full border border-white/15 text-sm text-muted transition-colors hover:border-brand-orange hover:text-brand-orange"
+                >
+                  ig
+                </a>
+              </div>
+            </div>
+          </footer>
+        </>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

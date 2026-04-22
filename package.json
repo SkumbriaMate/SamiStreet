@@ -10,7 +10,7 @@
     "dev:clean": "npm run clean && next dev --turbo",
     "dev:clean:webpack": "npm run clean && next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start -H 0.0.0.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",

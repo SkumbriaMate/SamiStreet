@@ -1,11 +1,15 @@
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { config } from 'dotenv';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/** Load env from `backend/.env` — that folder is only env + SQL; it is not part of the Next bundle. Chunk errors come from `.next/`. */
-config({ path: path.join(__dirname, 'backend', '.env'), override: true });
+/** Local: load `backend/.env` if present. `override: false` so Railway/host env vars are never replaced by an empty or stale file. */
+const envPath = path.join(__dirname, 'backend', '.env');
+if (existsSync(envPath)) {
+  config({ path: envPath, override: false });
+}
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {

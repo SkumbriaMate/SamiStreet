@@ -11,9 +11,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const DEBUG_ST = import.meta.env.DEV && false; // flip to `true` to show start/end markers
+const DEBUG_ST = process.env.NODE_ENV === 'development' && false; // flip to `true` to show start/end markers
 
-export function useGsapPage(scope: RefObject<HTMLElement | null>) {
+/**
+ * `layoutKey` should change when async CMS data affects the DOM before GSAP measures
+ * (e.g. `heroImageUrl` appears after `/api/site`). Otherwise `.hero-bg-photo` mounts later
+ * with `opacity-0` and never gets its entrance tween.
+ */
+export function useGsapPage(scope: RefObject<HTMLElement | null>, layoutKey?: string | boolean) {
   useLayoutEffect(() => {
     const root = scope.current;
     if (!root) return;
@@ -23,22 +28,25 @@ export function useGsapPage(scope: RefObject<HTMLElement | null>) {
     ScrollTrigger.config({ ignoreMobileResize: true });
 
     const ctx = gsap.context(() => {
+      const heroBgEl = root.querySelector<HTMLElement>('.hero-bg-photo');
+
       // ===== Hero entrance =====
       const heroTl = gsap.timeline({ delay: 0.2 });
-      heroTl
-        .fromTo('.hero-tag', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' })
-        .fromTo(
-          '.hero-title',
-          { opacity: 0, y: 40 },
-          { opacity: 1, y: 0, duration: 0.85, ease: 'power3.out' },
-          '-=0.4',
-        )
-        .fromTo(
-          '.hero-bg-photo',
+      heroTl.fromTo('.hero-tag', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }).fromTo(
+        '.hero-title',
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 0.85, ease: 'power3.out' },
+        '-=0.4',
+      );
+      if (heroBgEl) {
+        heroTl.fromTo(
+          heroBgEl,
           { opacity: 0 },
           { opacity: 1, duration: 0.95, ease: 'power2.out' },
           '-=0.35',
-        )
+        );
+      }
+      heroTl
         .fromTo(
           '.hero-visual',
           { opacity: 0, y: 16 },
@@ -59,11 +67,13 @@ export function useGsapPage(scope: RefObject<HTMLElement | null>) {
         );
 
       // Hero parallax: background photo + light grid drift
-      gsap.to('.hero-bg-photo', {
-        yPercent: -3,
-        ease: 'none',
-        scrollTrigger: { trigger: '.hero-section', start: 'top top', end: 'bottom top', scrub: 1.05 },
-      });
+      if (heroBgEl) {
+        gsap.to(heroBgEl, {
+          yPercent: -3,
+          ease: 'none',
+          scrollTrigger: { trigger: '.hero-section', start: 'top top', end: 'bottom top', scrub: 1.05 },
+        });
+      }
       gsap.to('.hero-grid', {
         y: -32,
         ease: 'none',
@@ -444,5 +454,5 @@ export function useGsapPage(scope: RefObject<HTMLElement | null>) {
       window.clearTimeout(resizeDebounce);
       ctx.revert();
     };
-  }, [scope]);
+  }, [scope, layoutKey]);
 }

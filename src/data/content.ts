@@ -1,19 +1,12 @@
+import type { MenuItem } from '../types/menu';
+
 /**
- * Menu items — edit this list to change cards.
+ * Menu items — static fallback when Supabase has no rows yet.
  * - `cat` must match one of `FILTERS` (except „ყველა“) for filtering.
  * - `emoji`: fallback if no image
  * - `image`: optional path (put image in /public)
  */
-export type MenuItem = {
-  emoji: string;
-  image?: string;
-  cat: string;
-  name: string;
-  desc: string;
-  price: string;
-  badge?: string;
-  badgeStyle?: 'green';
-};
+export type { MenuItem };
 
 export const FILTERS = [
   'ყველა',

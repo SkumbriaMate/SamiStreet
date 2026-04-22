@@ -1,28 +1,36 @@
 import { ChevronsDown } from 'lucide-react';
 import { ABOUT_STORY_LINES } from '../data/aboutStory';
+import { useCms } from '../context/CmsProvider';
+import { brandLogoSrc } from '../lib/siteDisplay';
 import { ka } from '../locale/ka';
 
 /** Scroll-driven sentence story directly under the hero (no extra nav links here). */
 export function AboutSection() {
+  const { site } = useCms();
+  const storyFromCms = (site.aboutStoryLines ?? []).map((l) => l.trim()).filter(Boolean);
+  const storyLines = storyFromCms.length ? storyFromCms : [...ABOUT_STORY_LINES];
+
   return (
     <section className="relative border-t border-white/[0.06] bg-surface-black">
       <div id="about-story" className="relative">
         <div className="about-story-pin relative flex h-screen w-full items-center px-6 md:px-[60px]">
           <div className="pointer-events-none absolute left-6 top-8 flex items-center gap-3 md:left-[60px] md:top-12">
-            <img
-              src="/sami-logo.png"
-              alt={ka.nav.logoAlt}
-              className="h-12 w-12 object-contain opacity-90 md:h-16 md:w-16"
-            />
+            {brandLogoSrc(site) ? (
+              <img
+                src={brandLogoSrc(site)}
+                alt={site.navLogoAlt ?? ka.nav.logoAlt}
+                className="h-12 w-12 object-contain opacity-90 md:h-16 md:w-16"
+              />
+            ) : null}
             <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[4px] text-brand-green">
               <span className="h-px w-[24px] bg-brand-green" aria-hidden="true" />
-              {ka.about.label}
+              {site.aboutLabel ?? ka.about.label}
             </p>
           </div>
 
           <div className="relative mx-auto w-full max-w-[1400px]">
             <div className="relative h-[40vh] md:h-[45vh]">
-              {ABOUT_STORY_LINES.map((line, idx) => (
+              {storyLines.map((line, idx) => (
                 <div
                   key={`${line}-${idx}`}
                   className="about-story-line absolute inset-0 flex flex-wrap content-center items-center gap-x-3 gap-y-2 md:gap-x-4"
@@ -49,7 +57,7 @@ export function AboutSection() {
                 aria-hidden
               />
               <span className="max-w-[min(92vw,22rem)] text-center text-[11px] font-medium uppercase tracking-[0.2em] text-cream md:text-xs md:tracking-[0.24em]">
-                {ka.about.scrollHint}
+                {site.aboutScrollHint ?? ka.about.scrollHint}
               </span>
             </div>
           </div>

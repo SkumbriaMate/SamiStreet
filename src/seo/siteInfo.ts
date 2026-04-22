@@ -1,7 +1,7 @@
 import { LOCATION_ROWS, MAPS_COORDS, SOCIAL_LINKS, STREET_ADDRESS_KA } from '../data/content';
 
-/** Public site URL — set in `.env` for production: `VITE_SITE_URL=https://yourdomain.ge` */
-export const SITE_URL_ENV = (import.meta.env.VITE_SITE_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+/** Public site URL — production: `NEXT_PUBLIC_SITE_URL=https://yourdomain.ge` */
+export const SITE_URL_ENV = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '');
 
 export const SITE_NAME_KA = 'სამი სტრიტ ბისტრო';
 export const SITE_NAME_EN = 'Sami Street Bistro';
@@ -34,8 +34,6 @@ export const META_KEYWORDS = [
   'David Aghmashenebeli Avenue 111',
 ].join(', ');
 
-export const DEFAULT_OG_IMAGE_PATH = '/sami-logo-fotor-20260420123031.png';
-
 export function getPublicOrigin(): string {
   if (SITE_URL_ENV) return SITE_URL_ENV;
   if (typeof window !== 'undefined') return window.location.origin;
@@ -43,14 +41,60 @@ export function getPublicOrigin(): string {
 }
 
 export function getTelephoneE164(): string {
-  const row = LOCATION_ROWS.find((r) => r.kind === 'text' && r.link?.startsWith('tel:'));
-  const raw = row?.link?.replace(/^tel:/, '') ?? '995557053311';
+  const row = LOCATION_ROWS.find((r) => r.kind === 'text');
+  const link = row && 'link' in row ? row.link : null;
+  const raw = link?.replace(/^tel:/, '') ?? '995557053311';
   return raw.startsWith('+') ? raw : `+${raw}`;
 }
 
-export function buildRestaurantJsonLd(origin: string): object {
+export function buildRestaurantJsonLd(origin: string, primaryImageAbsoluteUrl?: string | null): object {
   const url = origin ? `${origin}/` : '/';
-  const image = origin ? `${origin}${DEFAULT_OG_IMAGE_PATH}` : DEFAULT_OG_IMAGE_PATH;
+
+  const restaurant: Record<string, unknown> = {
+    '@type': 'Restaurant',
+    '@id': `${url}#restaurant`,
+    name: SITE_NAME_KA,
+    alternateName: SITE_NAME_EN,
+    url,
+    telephone: getTelephoneE164(),
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: STREET_ADDRESS_KA,
+      addressLocality: 'Kutaisi',
+      addressRegion: 'Imereti',
+      addressCountry: 'GE',
+    },
+    geo: {
+      '@type': 'GeoCoordinates',
+      latitude: MAPS_COORDS.lat,
+      longitude: MAPS_COORDS.lng,
+    },
+    servesCuisine: ['Georgian', 'Street food', 'Fast casual', 'Shawarma'],
+    priceRange: '₾',
+    sameAs: SOCIAL_LINKS.map((s) => s.href),
+    openingHoursSpecification: [
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        opens: '10:00',
+        closes: '22:00',
+      },
+      {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Saturday', 'Sunday'],
+        opens: '11:00',
+        closes: '23:00',
+      },
+    ],
+    hasMenu: {
+      '@type': 'Menu',
+      url: `${url}#menu`,
+    },
+  };
+
+  if (primaryImageAbsoluteUrl) {
+    restaurant.image = [primaryImageAbsoluteUrl];
+  }
 
   return {
     '@context': 'https://schema.org',
@@ -64,48 +108,7 @@ export function buildRestaurantJsonLd(origin: string): object {
         inLanguage: 'ka',
         publisher: { '@id': `${url}#restaurant` },
       },
-      {
-        '@type': 'Restaurant',
-        '@id': `${url}#restaurant`,
-        name: SITE_NAME_KA,
-        alternateName: SITE_NAME_EN,
-        url,
-        image: [image],
-        telephone: getTelephoneE164(),
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: STREET_ADDRESS_KA,
-          addressLocality: 'Kutaisi',
-          addressRegion: 'Imereti',
-          addressCountry: 'GE',
-        },
-        geo: {
-          '@type': 'GeoCoordinates',
-          latitude: MAPS_COORDS.lat,
-          longitude: MAPS_COORDS.lng,
-        },
-        servesCuisine: ['Georgian', 'Street food', 'Fast casual', 'Shawarma'],
-        priceRange: '₾',
-        sameAs: SOCIAL_LINKS.map((s) => s.href),
-        openingHoursSpecification: [
-          {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-            opens: '10:00',
-            closes: '22:00',
-          },
-          {
-            '@type': 'OpeningHoursSpecification',
-            dayOfWeek: ['Saturday', 'Sunday'],
-            opens: '11:00',
-            closes: '23:00',
-          },
-        ],
-        hasMenu: {
-          '@type': 'Menu',
-          url: `${url}#menu`,
-        },
-      },
+      restaurant,
     ],
   };
 }

@@ -1,4 +1,7 @@
+'use client';
+
 import { useEffect, useRef, useState } from 'react';
+import { useCms } from './context/CmsProvider';
 import { useGsapPage } from './hooks/useGsapPage';
 import { SeoHead } from './components/SeoHead';
 import { Navigation } from './components/Navigation';
@@ -11,6 +14,7 @@ import { FooterBar } from './components/FooterBar';
 
 export default function App() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const { loading: cmsLoading, site } = useCms();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -21,7 +25,8 @@ export default function App() {
   }, []);
 
   // Scroll / pin animations (GSAP + ScrollTrigger): src/hooks/useGsapPage.ts
-  useGsapPage(rootRef);
+  const gsapLayoutKey = `${cmsLoading}|${(site.heroImageUrl ?? '').trim()}`;
+  useGsapPage(rootRef, gsapLayoutKey);
 
   return (
     <div ref={rootRef} className="min-h-screen min-w-0 overflow-x-hidden bg-surface-black">

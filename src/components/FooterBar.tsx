@@ -1,25 +1,31 @@
-import { SOCIAL_LINKS } from '../data/content';
+import { useCms } from '../context/CmsProvider';
+import { brandLogoSrc, socialLinksResolved } from '../lib/siteDisplay';
 import { ka } from '../locale/ka';
 import { SocialBrandIcon } from './SocialBrandIcons';
 
 export function FooterBar() {
+  const { site } = useCms();
+  const socials = socialLinksResolved(site);
+  const logo = brandLogoSrc(site);
   return (
     <footer className="border-t border-white/[0.06] bg-surface-black px-6 py-12 md:px-[60px]">
       <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-8 text-center md:flex-row md:justify-between md:text-left">
         <div className="footer-col flex items-center gap-3">
-          <img
-            src="/sami-logo-fotor-20260420123031.png"
-            alt=""
-            className="h-10 w-auto max-w-[3.25rem] object-contain"
-          />
+          {logo ? (
+            <img
+              src={logo}
+              alt=""
+              className="h-10 w-auto max-w-[3.25rem] object-contain"
+            />
+          ) : null}
           <div className="font-playfair text-lg font-bold">
-            <span className="text-cream">SAMI </span>
-            <span className="text-brand-orange">STREET BISTRO</span>
+            <span className="text-cream">{site.footerBrandCream ?? 'SAMI '}</span>
+            <span className="text-brand-orange">{site.footerBrandAccent ?? 'STREET BISTRO'}</span>
           </div>
         </div>
-        <p className="footer-col text-xs text-muted">{ka.footer.copyright}</p>
+        <p className="footer-col text-xs text-muted">{site.footerCopyright ?? ka.footer.copyright}</p>
         <div className="footer-col flex gap-3">
-          {SOCIAL_LINKS.map((item) => (
+          {socials.map((item) => (
             <a
               key={item.id}
               href={item.href}

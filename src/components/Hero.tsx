@@ -1,18 +1,23 @@
+import { useCms } from '../context/CmsProvider';
 import { useOpenStatus } from '../hooks/useOpenStatus';
 import { ka } from '../locale/ka';
 import { smoothScrollToHash } from '../utils/smoothScrollToHash';
 
 export function Hero() {
   const status = useOpenStatus();
+  const { site } = useCms();
+  const heroBg = (site.heroImageUrl ?? '').trim();
 
   return (
     <section className="hero-section relative flex min-h-screen min-h-[100dvh] flex-col justify-center overflow-x-hidden overflow-y-hidden pt-28 md:min-h-screen md:pt-0">
-      {/* Full-bleed hero artwork — clipped to section (no horizontal page scroll) */}
-      <div
-        className="hero-bg-photo pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat opacity-0"
-        style={{ backgroundImage: "url('/hero.png')" }}
-        aria-hidden
-      />
+      {/* Full-bleed hero — URL from CMS / Storage only */}
+      {heroBg ? (
+        <div
+          className="hero-bg-photo pointer-events-none absolute inset-0 bg-cover bg-center bg-no-repeat opacity-0"
+          style={{ backgroundImage: `url('${heroBg}')` }}
+          aria-hidden
+        />
+      ) : null}
       <div
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/88 via-black/65 to-black/55 md:bg-gradient-to-r md:from-black/90 md:via-black/55 md:to-black/35"
         aria-hidden
@@ -23,19 +28,19 @@ export function Hero() {
       <div className="relative z-[2] flex w-full min-w-0 max-w-[min(40rem,100%)] flex-col gap-6 self-start px-[max(1.25rem,env(safe-area-inset-left))] pb-20 pr-[max(1.25rem,env(safe-area-inset-right))] text-left md:max-w-[min(36rem,52%)] md:gap-8 md:pl-[60px] md:pr-6 md:pb-0">
         <p className="hero-tag mb-0 flex flex-wrap items-center gap-4 text-xs font-medium uppercase tracking-[3px] text-brand-green opacity-0 drop-shadow-[0_1px_12px_rgba(0,0,0,0.85)]">
           <span className="h-px w-[30px] shrink-0 bg-brand-green" />
-          {ka.hero.tag}
+          {site.heroTag ?? ka.hero.tag}
         </p>
         <h1
           className="hero-title mt-0 font-playfair font-bold leading-[1.08] tracking-tight text-cream opacity-0 drop-shadow-[0_2px_24px_rgba(0,0,0,0.9)]"
           style={{ fontSize: 'clamp(2rem, 2.2vw + 1.25rem, 4rem)' }}
         >
-          <span className="text-cream">Sami </span>
-          <span className="text-brand-green">Street </span>
-          <span className="text-cream">Bistro</span>
+          <span className="text-cream">{site.heroTitlePart1 ?? 'Sami '}</span>
+          <span className="text-brand-green">{site.heroTitlePart2 ?? 'Street '}</span>
+          <span className="text-cream">{site.heroTitlePart3 ?? 'Bistro'}</span>
         </h1>
 
         <p className="hero-sub mt-0 max-w-lg text-base font-light leading-relaxed text-cream/95 opacity-0 drop-shadow-[0_1px_16px_rgba(0,0,0,0.88)]">
-          {ka.hero.body}
+          {site.heroBody ?? ka.hero.body}
         </p>
         <div className="hero-actions mt-0 flex flex-wrap items-center gap-4 opacity-0">
           <a
@@ -43,14 +48,14 @@ export function Hero() {
             onClick={smoothScrollToHash}
             className="inline-flex rounded-[2px] bg-brand-orange px-8 py-3.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"
           >
-            {ka.hero.viewMenu}
+            {site.heroViewMenu ?? ka.hero.viewMenu}
           </a>
           <a
             href="#location"
             onClick={smoothScrollToHash}
             className="text-sm font-medium text-cream underline-offset-4 transition-colors hover:text-brand-green drop-shadow-[0_1px_12px_rgba(0,0,0,0.85)]"
           >
-            {ka.hero.findUs}
+            {site.heroFindUs ?? ka.hero.findUs}
           </a>
         </div>
       </div>
@@ -70,15 +75,16 @@ export function Hero() {
             } ${status.isOpen ? 'animate-pulse' : ''}`}
             aria-hidden="true"
           />
-          {status.isOpen ? ka.hero.openNow : ka.hero.closedNow}
+          {status.isOpen ? (site.heroOpenNow ?? ka.hero.openNow) : (site.heroClosedNow ?? ka.hero.closedNow)}
           {status.nextChangeAt && (
             <span className="min-w-0 text-[10px] font-medium text-muted">
-              {status.isOpen ? ka.hero.closesAt : ka.hero.opensAt} {status.nextChangeAt}
+              {status.isOpen ? (site.heroClosesAt ?? ka.hero.closesAt) : (site.heroOpensAt ?? ka.hero.opensAt)}{' '}
+              {status.nextChangeAt}
             </span>
           )}
         </div>
         <div className="float-badge-2 shrink-0 rounded-full border-2 border-brand-orange bg-surface-dark px-3 py-1.5 text-[10px] font-semibold text-cream sm:px-4 sm:py-2 sm:text-xs">
-          {ka.hero.topRated}
+          {site.heroTopRated ?? ka.hero.topRated}
         </div>
       </div>
     </section>

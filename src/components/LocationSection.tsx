@@ -1,6 +1,17 @@
 import { Clock, MapPin, Phone, Share2 } from 'lucide-react';
-import { LOCATION_ROWS, MAPS_EMBED_SRC, MAPS_SEARCH_URL } from '../data/content';
+import { LOCATION_ROWS } from '../data/content';
+import { useCms } from '../context/CmsProvider';
 import { useOpenStatus } from '../hooks/useOpenStatus';
+import {
+  locationAddressText,
+  locationPhoneDisplay,
+  locationPhoneHref,
+  mapsEmbedSrc,
+  mapsOpenHref,
+  openingHoursWeekend,
+  openingHoursWeekdays,
+  socialLinksResolved,
+} from '../lib/siteDisplay';
 import { ka } from '../locale/ka';
 import { SocialBrandIcon } from './SocialBrandIcons';
 
@@ -22,12 +33,24 @@ function LocationRowIcon({ kind }: { kind: (typeof LOCATION_ROWS)[number]['kind'
 
 export function LocationSection() {
   const status = useOpenStatus();
+  const { site } = useCms();
+  const embed = mapsEmbedSrc(site);
+  const mapsLink = mapsOpenHref(site);
+  const addressLine = locationAddressText(site);
+  const phoneDisplay = locationPhoneDisplay(site);
+  const phoneHref = locationPhoneHref(site);
+  const hoursWd = openingHoursWeekdays(site);
+  const hoursWe = openingHoursWeekend(site);
+  const socials = socialLinksResolved(site);
 
   return (
     <section
       id="location"
       className="scroll-mt-24 border-t border-white/[0.06] bg-surface-black px-6 py-12 md:scroll-mt-28 md:px-[60px] md:py-20 lg:py-[100px]"
     >
+      <h2 className="mx-auto mb-10 max-w-[1200px] font-playfair text-3xl font-bold text-cream md:text-[2.25rem]">
+        {site.locationTitle ?? ka.location.title}
+      </h2>
       <div
         className="loc-perspective mx-auto grid max-w-[1200px] grid-cols-1 items-start gap-8 md:grid-cols-[minmax(0,1fr)_minmax(280px,520px)] md:gap-12 lg:gap-16 max-md:[perspective:none]"
         style={{ perspective: '1400px' }}
@@ -58,10 +81,11 @@ export function LocationSection() {
                         }`}
                         aria-hidden="true"
                       />
-                      {status.isOpen ? ka.hero.openNow : ka.hero.closedNow}
+                      {status.isOpen ? (site.heroOpenNow ?? ka.hero.openNow) : (site.heroClosedNow ?? ka.hero.closedNow)}
                       {status.nextChangeAt && (
                         <span className="font-medium text-muted">
-                          · {status.isOpen ? ka.hero.closesAt : ka.hero.opensAt} {status.nextChangeAt}
+                          · {status.isOpen ? (site.heroClosesAt ?? ka.hero.closesAt) : (site.heroOpensAt ?? ka.hero.opensAt)}{' '}
+                          {status.nextChangeAt}
                         </span>
                       )}
                     </span>
@@ -71,26 +95,23 @@ export function LocationSection() {
                   switch (row.kind) {
                     case 'grid':
                       return (
-                        <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-cream">
+                        <div className="mt-3 grid grid-cols-1 gap-3 text-sm text-cream sm:grid-cols-2">
                           <div>
                             <p className="text-muted">{ka.location.weekdays}</p>
-                            <p className="font-medium">10:00–22:00</p>
+                            <p className="font-medium">{hoursWd}</p>
                           </div>
                           <div>
                             <p className="text-muted">{ka.location.weekend}</p>
-                            <p className="font-medium">11:00–23:00</p>
+                            <p className="font-medium">{hoursWe}</p>
                           </div>
                         </div>
                       );
                     case 'address':
                       return (
                         <div className="mt-2 space-y-2">
-                          <p className="text-[15px] font-medium leading-snug tracking-wide text-cream">{row.primary}</p>
-                          {row.secondary ? (
-                            <p className="text-sm leading-relaxed text-muted">{row.secondary}</p>
-                          ) : null}
+                          <p className="text-[15px] font-medium leading-snug tracking-wide text-cream">{addressLine}</p>
                           <a
-                            href={row.link}
+                            href={mapsLink}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-block text-xs font-semibold uppercase tracking-wider text-brand-green underline-offset-2 hover:underline"
@@ -102,7 +123,7 @@ export function LocationSection() {
                     case 'socials':
                       return (
                         <div className="mt-3 flex flex-wrap gap-3">
-                          {row.items.map((item) => (
+                          {socials.map((item) => (
                             <a
                               key={item.id}
                               href={item.href}
@@ -117,11 +138,11 @@ export function LocationSection() {
                         </div>
                       );
                     case 'text':
-                      return row.link ? (
-                        <a href={row.link} className="mt-1 block text-base text-cream hover:text-brand-green">
-                          {row.value}
+                      return (
+                        <a href={phoneHref} className="mt-1 block text-base text-cream hover:text-brand-green">
+                          {phoneDisplay}
                         </a>
-                      ) : null;
+                      );
                     default:
                       return null;
                   }
@@ -131,11 +152,10 @@ export function LocationSection() {
           ))}
         </div>
 
-        {/* Map: same grid column flow on mobile (below info); md+ sits in second column aligned to section top */}
-        <div className="map-card relative w-full max-md:mx-auto max-md:max-w-lg overflow-hidden rounded bg-surface-dark md:sticky md:top-28 md:w-auto h-[min(38vh,320px)] min-h-[220px] sm:h-[min(40vh,360px)] sm:min-h-[240px] md:h-[min(88vh,820px)] md:min-h-[480px]">
+        <div className="map-card relative h-[min(38vh,320px)] min-h-[220px] w-full overflow-hidden rounded bg-surface-dark max-md:mx-auto max-md:max-w-lg sm:h-[min(40vh,360px)] sm:min-h-[240px] md:sticky md:top-28 md:h-[min(88vh,820px)] md:min-h-[480px] md:w-auto">
           <iframe
-            title={ka.location.mapFrameTitle}
-            src={MAPS_EMBED_SRC}
+            title={site.locationMapFrameTitle ?? ka.location.mapFrameTitle}
+            src={embed}
             className="pointer-events-auto absolute inset-0 h-full w-full border-0"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
@@ -147,7 +167,7 @@ export function LocationSection() {
           />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center px-4 pb-6 pt-24 md:pb-8">
             <a
-              href={MAPS_SEARCH_URL}
+              href={mapsLink}
               target="_blank"
               rel="noopener noreferrer"
               className="pointer-events-auto inline-flex rounded-[2px] bg-brand-orange px-8 py-3.5 text-sm font-semibold text-black shadow-lg transition-opacity hover:opacity-90"

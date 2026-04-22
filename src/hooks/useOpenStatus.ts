@@ -81,9 +81,8 @@ function computeStatus(): OpenStatus {
     const withinOvernight = isOvernight && (minutes >= openMinutes || minutes < closeMinutes);
 
     if (withinNormal || withinOvernight) {
-      const till = withinOvernight && minutes < closeMinutes
-        ? closeMinutes - minutes
-        : closeMinutes - minutes;
+      const till =
+        withinOvernight && minutes < closeMinutes ? closeMinutes - minutes : closeMinutes - minutes;
       return {
         isOpen: true,
         todayOpen: openMinutes,
@@ -129,8 +128,21 @@ function computeStatus(): OpenStatus {
   };
 }
 
+/** Same on server and first client paint — avoids hydration mismatch vs live `computeStatus()`. */
+const HYDRATION_PLACEHOLDER: OpenStatus = {
+  isOpen: false,
+  todayOpen: null,
+  todayClose: null,
+  minutesUntilChange: null,
+  nextChangeAt: null,
+};
+
+/**
+ * Live open/closed from Tbilisi time. Initial render uses a fixed placeholder so SSR and the
+ * browser match; real schedule updates after mount (and every 30s).
+ */
 export function useOpenStatus(): OpenStatus {
-  const [status, setStatus] = useState<OpenStatus>(() => computeStatus());
+  const [status, setStatus] = useState<OpenStatus>(HYDRATION_PLACEHOLDER);
 
   useEffect(() => {
     const tick = () => setStatus(computeStatus());

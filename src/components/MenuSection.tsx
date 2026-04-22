@@ -1,10 +1,15 @@
-import { useMemo, useRef, useState } from 'react';
-import { FILTERS, MENU_ITEMS, type MenuItem } from '../data/content';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCms } from '../context/CmsProvider';
 import { useMenuMobileScrollAnim } from '../hooks/useMenuMobileScrollAnim';
 import { ka } from '../locale/ka';
+import type { MenuItem } from '../types/menu';
 import { MenuPrice } from './MenuPrice';
 
-const ALL = FILTERS[0];
+function itemBadges(item: MenuItem): string[] {
+  if (item.badges?.length) return item.badges;
+  if (item.badge) return [item.badge];
+  return [];
+}
 
 function chunkPairs<T>(items: T[]): T[][] {
   const rows: T[][] = [];
@@ -13,13 +18,21 @@ function chunkPairs<T>(items: T[]): T[][] {
 }
 
 export function MenuSection() {
-  const [menuFilter, setMenuFilter] = useState<(typeof FILTERS)[number]>(ALL);
+  const { menuItems, menuFilters, site } = useCms();
+  const ALL = menuFilters[0] ?? 'ყველა';
+  const [menuFilter, setMenuFilter] = useState<string>(ALL);
   const mobileStackRef = useRef<HTMLDivElement>(null);
 
   const visible = useMemo<MenuItem[]>(() => {
-    if (menuFilter === ALL) return MENU_ITEMS;
-    return MENU_ITEMS.filter((it) => it.cat === menuFilter);
-  }, [menuFilter]);
+    if (menuFilter === ALL) return menuItems;
+    return menuItems.filter((it) => it.cat === menuFilter);
+  }, [menuFilter, menuItems, ALL]);
+
+  useEffect(() => {
+    if (!menuFilters.includes(menuFilter)) {
+      setMenuFilter(menuFilters[0] ?? ALL);
+    }
+  }, [menuFilters, menuFilter, ALL]);
 
   const mobileAnimKey = useMemo(
     () => `${menuFilter}:${visible.map((i) => i.name).join('|')}`,
@@ -36,17 +49,17 @@ export function MenuSection() {
           <div className="reveal">
             <p className="mb-3 flex items-center gap-3 text-xs font-semibold uppercase tracking-[4px] text-brand-green">
               <span className="h-px w-[24px] bg-brand-green" />
-              {ka.menu.label}
+              {site.menuLabel ?? ka.menu.label}
             </p>
             <h2 id="menu-heading" className="font-playfair text-4xl font-bold text-cream md:text-[2.5rem]">
-              {ka.menu.title}
+              {site.menuTitle ?? ka.menu.title}
             </h2>
             <p className="mt-3 hidden text-xs uppercase tracking-[3px] text-muted md:block">
-              {ka.menu.scrollHint}: {visible.length}
+              {site.menuScrollHint ?? ka.menu.scrollHint}: {visible.length}
             </p>
           </div>
           <div className="reveal flex flex-wrap gap-2">
-            {FILTERS.map((f) => (
+            {menuFilters.map((f) => (
               <button
                 key={f}
                 type="button"
@@ -83,7 +96,7 @@ export function MenuSection() {
         </div>
 
         <div className="menu-scroll-hint pointer-events-none absolute bottom-[8vh] right-[6vw] z-20 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[4px] text-muted">
-          <span>{ka.menu.scrollBrowse}</span>
+          <span>{site.menuScrollBrowse ?? ka.menu.scrollBrowse}</span>
           <span className="inline-block h-px w-10 bg-brand-green" />
           <span className="text-brand-green">→</span>
         </div>
@@ -120,10 +133,17 @@ export function MenuSection() {
                       <span className="text-[9px] font-bold uppercase tracking-[2px] text-brand-green sm:text-[10px]">
                         {String(idx + 1).padStart(2, '0')} / {counterTotal}
                       </span>
-                      {item.badge && (
-                        <span className="shrink-0 rounded border border-brand-green px-1.5 py-0.5 text-[9px] font-semibold text-brand-green sm:px-2 sm:text-[10px]">
-                          {item.badge}
-                        </span>
+                      {itemBadges(item).length > 0 && (
+                        <div className="flex max-w-[55%] flex-wrap justify-end gap-1">
+                          {itemBadges(item).map((b) => (
+                            <span
+                              key={b}
+                              className="shrink-0 rounded border border-brand-green px-1.5 py-0.5 text-[9px] font-semibold text-brand-green sm:px-2 sm:text-[10px]"
+                            >
+                              {b}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                     <div className="menu-card-emoji mt-2 flex h-[4.5rem] items-center justify-center sm:mt-3 sm:h-24">
@@ -147,11 +167,14 @@ export function MenuSection() {
                       <p className="mt-1 line-clamp-3 text-[11px] font-light leading-snug text-muted sm:text-[12px]">
                         {item.desc}
                       </p>
-                      <div className="mt-auto pt-2">
+                      <div className="mt-auto flex flex-wrap items-end justify-between gap-x-2 gap-y-1 pt-2">
                         <MenuPrice
                           price={item.price}
                           className="font-bebas text-[17px] text-brand-orange sm:text-[19px]"
                         />
+                        <span className="shrink-0 text-[9px] uppercase tracking-[2px] text-muted sm:text-[10px]">
+                          {site.menuOrderTag ?? ka.menu.orderTag}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -172,17 +195,25 @@ export function MenuSection() {
 }
 
 function MenuCard({ item, idx, total }: { item: MenuItem; idx: number; total: number }) {
+  const { site } = useCms();
   return (
     <article className="menu-card relative flex h-full w-[min(440px,calc(100vw-8rem))] max-w-[440px] shrink-0 flex-col overflow-hidden bg-black p-8 md:p-10">
       <div className="menu-card-lift flex h-full flex-col justify-between">
-        <div className="menu-card-meta flex items-start justify-between">
+        <div className="menu-card-meta flex items-start justify-between gap-2">
           <span className="text-[11px] font-bold uppercase tracking-[3px] text-brand-green">
             {String(idx + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
           </span>
-          {item.badge && (
-            <span className="rounded border border-brand-green px-2.5 py-1 text-[11px] font-semibold text-brand-green">
-              {item.badge}
-            </span>
+          {itemBadges(item).length > 0 && (
+            <div className="flex max-w-[60%] flex-wrap justify-end gap-1.5">
+              {itemBadges(item).map((b) => (
+                <span
+                  key={b}
+                  className="rounded border border-brand-green px-2.5 py-1 text-[11px] font-semibold text-brand-green"
+                >
+                  {b}
+                </span>
+              ))}
+            </div>
           )}
         </div>
         <div className="menu-card-emoji flex flex-1 items-center justify-center py-4">
@@ -202,7 +233,9 @@ function MenuCard({ item, idx, total }: { item: MenuItem; idx: number; total: nu
           <p className="mt-2 text-[13px] font-light leading-relaxed text-muted">{item.desc}</p>
           <div className="mt-6 flex flex-wrap items-end justify-between gap-x-3 gap-y-2 border-t border-white/10 pt-4">
             <MenuPrice price={item.price} className="font-bebas text-[26px] text-brand-orange md:text-[30px]" />
-            <span className="shrink-0 text-[10px] uppercase tracking-[3px] text-muted">{ka.menu.orderTag}</span>
+            <span className="shrink-0 text-[10px] uppercase tracking-[3px] text-muted">
+              {site.menuOrderTag ?? ka.menu.orderTag}
+            </span>
           </div>
         </div>
       </div>

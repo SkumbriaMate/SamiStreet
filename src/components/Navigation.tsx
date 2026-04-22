@@ -1,9 +1,12 @@
+import { useCms } from '../context/CmsProvider';
+import { brandLogoSrc } from '../lib/siteDisplay';
 import { ka } from '../locale/ka';
 import { smoothScrollToHash } from '../utils/smoothScrollToHash';
 
 type Props = { scrolled: boolean };
 
 export function Navigation({ scrolled }: Props) {
+  const { site } = useCms();
   const navBg = scrolled
     ? 'bg-[rgba(10,10,8,0.97)] backdrop-blur-[12px]'
     : 'bg-gradient-to-b from-[rgba(10,10,8,0.95)] to-transparent';
@@ -18,13 +21,15 @@ export function Navigation({ scrolled }: Props) {
           onClick={smoothScrollToHash}
           className="group flex items-center gap-3 font-playfair text-2xl font-bold tracking-tight text-cream md:text-[26px]"
         >
-          <img
-            src="/sami-logo-fotor-20260420123031.png"
-            alt={ka.nav.logoAlt}
-            className="h-9 w-auto max-w-[2.85rem] object-contain md:h-10 md:max-w-[3.1rem]"
-          />
+          {brandLogoSrc(site) ? (
+            <img
+              src={brandLogoSrc(site)}
+              alt={site.navLogoAlt ?? ka.nav.logoAlt}
+              className="h-9 w-auto max-w-[2.85rem] object-contain md:h-10 md:max-w-[3.1rem]"
+            />
+          ) : null}
           <span className="flex items-center gap-2">
-            SAMI
+            {site.navBrand ?? 'SAMI'}
             <span className="inline-block h-2 w-2 rounded-full bg-brand-green" aria-hidden="true" />
           </span>
         </a>
@@ -34,14 +39,14 @@ export function Navigation({ scrolled }: Props) {
             onClick={smoothScrollToHash}
             className="text-[13px] font-medium uppercase tracking-[2px] text-muted transition-colors hover:text-brand-green"
           >
-            {ka.nav.menu}
+            {site.navMenu ?? ka.nav.menu}
           </a>
           <a
             href="#location"
             onClick={smoothScrollToHash}
             className="text-[13px] font-medium uppercase tracking-[2px] text-muted transition-colors hover:text-brand-green"
           >
-            {ka.nav.findUs}
+            {site.navFindUs ?? ka.nav.findUs}
           </a>
         </div>
         <a
@@ -49,7 +54,7 @@ export function Navigation({ scrolled }: Props) {
           onClick={smoothScrollToHash}
           className="shrink-0 rounded-[2px] bg-brand-orange px-5 py-2.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"
         >
-          {ka.nav.contacts}
+          {site.navContacts ?? ka.nav.contacts}
         </a>
       </nav>
     </header>

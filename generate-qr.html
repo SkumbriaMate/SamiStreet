@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ka">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sami Street Bistro — QR ბეჭედი</title>
+    <style>
+      :root {
+        --bg: #0a0a08;
+        --cream: #f5f0e8;
+        --green: #5a9068;
+        --orange: #e8771a;
+        --muted: #888880;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, 'Segoe UI', sans-serif;
+        background: #1a1a16;
+        color: var(--cream);
+        padding: 1.5rem;
+      }
+      .hint {
+        max-width: 40rem;
+        margin: 0 auto 1.25rem;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid rgba(90, 144, 104, 0.45);
+        background: rgba(10, 10, 8, 0.85);
+        font-size: 0.875rem;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+      .hint strong {
+        color: var(--cream);
+      }
+      .sheet {
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+        padding: 2rem 1.75rem 1.75rem;
+        border-radius: 16px;
+        background: var(--bg);
+        border: 3px solid var(--orange);
+        box-shadow:
+          0 0 0 2px var(--green),
+          0 24px 48px rgba(0, 0, 0, 0.55);
+      }
+      .brand {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+      .brand img {
+        width: min(200px, 72vw);
+        height: auto;
+        display: block;
+        margin: 0 auto 0.75rem;
+        border-radius: 12px;
+        background: #fff;
+        padding: 8px;
+      }
+      .brand h1 {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--green);
+      }
+      .brand p {
+        margin: 0.35rem 0 0;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .qr-wrap {
+        display: flex;
+        justify-content: center;
+        padding: 0.75rem;
+        background: radial-gradient(circle at 50% 30%, rgba(90, 144, 104, 0.12), transparent 55%);
+        border-radius: 12px;
+      }
+      #qr canvas {
+        display: block;
+        max-width: 100%;
+        height: auto !important;
+        border-radius: 8px;
+        border: 2px solid rgba(245, 240, 232, 0.15);
+      }
+      .url {
+        margin: 1rem 0 0;
+        text-align: center;
+        font-size: 0.72rem;
+        word-break: break-all;
+        color: var(--muted);
+        font-family: ui-monospace, monospace;
+      }
+      .tagline {
+        margin-top: 1rem;
+        text-align: center;
+        font-size: 0.8rem;
+        color: var(--cream);
+        line-height: 1.4;
+      }
+      .tagline span {
+        color: var(--orange);
+        font-weight: 600;
+      }
+      @media print {
+        body {
+          background: #fff;
+          padding: 0;
+        }
+        .hint {
+          display: none !important;
+        }
+        .sheet {
+          max-width: none;
+          width: 100%;
+          margin: 0;
+          border-radius: 0;
+          box-shadow: none;
+          border-width: 2px;
+          page-break-inside: avoid;
+        }
+      }
+      @page {
+        margin: 12mm;
+      }
+    </style>
+  </head>
+  <body>
+    <p class="hint">
+      <strong>როგორ გამოიყენოთ:</strong> გახსენით ეს ფაილი ბრაუზერში (Chrome / Edge). ინტერნეტი საჭიროა QR-ის გენერაციისთვის. შემდეგ
+      <strong>Print (Ctrl+P)</strong> — აირჩიეთ A4 ან „Save as PDF“. ლოგოს სურათი იტვირთება თქვენი საიტიდან.
+    </p>
+
+    <div class="sheet">
+      <div class="brand">
+        <img
+          id="logo"
+          src="https://samistreet-production.up.railway.app/sami-logo-fotor-20260420123031.png"
+          alt="Sami Street Bistro"
+        />
+        <h1>Sami Street Bistro</h1>
+        <p>ქუთაისი · სკანირება → მენიუ და საიტი</p>
+      </div>
+      <div class="qr-wrap">
+        <div id="qr" aria-label="QR კოდი"></div>
+      </div>
+      <p class="url" id="urlLine"></p>
+      <p class="tagline">სკანირეთ ტელეფონით · <span>მენიუ · მდებარეობა · კონტაქტები</span></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+      (function () {
+        var TARGET = 'https://samistreet-production.up.railway.app/';
+        var el = document.getElementById('qr');
+        var urlLine = document.getElementById('urlLine');
+        urlLine.textContent = TARGET;
+
+        if (typeof QRCode === 'undefined') {
+          el.innerHTML =
+            '<p style="color:#e8771a;text-align:center;">QR ბიბლიოთეკა ვერ ჩაიტვირთა. შეამოწმეთ ინტერნეტი და გადატვირთეთ გვერდი.</p>';
+          return;
+        }
+
+        QRCode.toCanvas(
+          TARGET,
+          {
+            width: 340,
+            margin: 2,
+            color: {
+              dark: '#0a0a08',
+              light: '#f5f0e8',
+            },
+            errorCorrectionLevel: 'M',
+          },
+          function (err, canvas) {
+            if (err) {
+              el.textContent = err.message || String(err);
+              return;
+            }
+            el.appendChild(canvas);
+          },
+        );
+      })();
+    </script>
+  </body>
+</html>

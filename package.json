@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "clean": "node scripts/next-clean.mjs",
-    "dev": "next dev",
-    "dev:clean": "npm run clean && next dev",
-    "dev:turbo": "next dev --turbo",
-    "dev:turbo:clean": "npm run clean && next dev --turbo",
+    "dev": "next dev --turbo",
+    "dev:webpack": "next dev",
+    "dev:clean": "npm run clean && next dev --turbo",
+    "dev:clean:webpack": "npm run clean && next dev",
     "build": "next build",
     "start": "next start"
   },

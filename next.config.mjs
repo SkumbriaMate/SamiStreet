@@ -16,17 +16,11 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   /**
-   * Dev: disable webpack persistent cache so chunk ids / files do not reference deleted `.next`
-   * entries (common on Windows with restarts or two `next dev` processes on the same repo).
-   * Use one terminal: `npm run dev`. If chunks are still missing: stop all node dev servers, then
-   * `npm run dev:clean`.
+   * Default `npm run dev` uses **Turbopack** (`--turbo`) so dev does not use Webpack’s split-chunk
+   * graph under `.next/server` — that graph is what breaks on Windows as `Cannot find module './NNN.js'`
+   * when files are removed mid-compile (AV, two dev servers, interrupted HMR).
+   * Production `next build` is unchanged. For Webpack dev: `npm run dev:webpack`.
    */
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.cache = false;
-    }
-    return config;
-  },
 };
 
 export default nextConfig;

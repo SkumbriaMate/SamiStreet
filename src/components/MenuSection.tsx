@@ -164,17 +164,14 @@ export function MenuSection() {
                       <h3 className="mt-1 line-clamp-2 font-playfair text-base font-bold leading-tight text-cream sm:text-lg">
                         {item.name}
                       </h3>
-                      <p className="mt-1 line-clamp-3 text-[11px] font-light leading-snug text-muted sm:text-[12px]">
+                      <p className="mt-1 text-[11px] font-light leading-snug text-muted sm:text-[12px]">
                         {item.desc}
                       </p>
-                      <div className="mt-auto flex flex-wrap items-end justify-between gap-x-2 gap-y-1 pt-2">
+                      <div className="mt-auto flex flex-wrap items-end pt-2">
                         <MenuPrice
                           price={item.price}
                           className="font-bebas text-[17px] text-brand-orange sm:text-[19px]"
                         />
-                        <span className="shrink-0 text-[9px] uppercase tracking-[2px] text-muted sm:text-[10px]">
-                          {site.menuOrderTag ?? ka.menu.orderTag}
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -195,7 +192,6 @@ export function MenuSection() {
 }
 
 function MenuCard({ item, idx, total }: { item: MenuItem; idx: number; total: number }) {
-  const { site } = useCms();
   return (
     <article className="menu-card relative flex h-full w-[min(440px,calc(100vw-8rem))] max-w-[440px] shrink-0 flex-col overflow-hidden bg-black p-8 md:p-10">
       <div className="menu-card-lift flex h-full flex-col justify-between">
@@ -231,11 +227,8 @@ function MenuCard({ item, idx, total }: { item: MenuItem; idx: number; total: nu
           <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-brand-green">{item.cat}</p>
           <h3 className="mt-2 font-playfair text-[28px] font-bold text-cream">{item.name}</h3>
           <p className="mt-2 text-[13px] font-light leading-relaxed text-muted">{item.desc}</p>
-          <div className="mt-6 flex flex-wrap items-end justify-between gap-x-3 gap-y-2 border-t border-white/10 pt-4">
+          <div className="mt-6 flex flex-wrap items-end border-t border-white/10 pt-4">
             <MenuPrice price={item.price} className="font-bebas text-[26px] text-brand-orange md:text-[30px]" />
-            <span className="shrink-0 text-[10px] uppercase tracking-[3px] text-muted">
-              {site.menuOrderTag ?? ka.menu.orderTag}
-            </span>
           </div>
         </div>
       </div>

@@ -17,14 +17,8 @@ function resolvedPassword(): string {
   return process.env.ADMIN_PASSWORD;
 }
 
-/**
- * Secret used to sign session tokens.
- * If `ADMIN_SESSION_SECRET` is set, that value is used; otherwise a key is derived from
- * `ADMIN_USERNAME` + `ADMIN_PASSWORD` (defaults: admin / admin when those env vars are omitted).
- */
+/** Signing key for session tokens — derived from `ADMIN_USERNAME` + `ADMIN_PASSWORD` (never the raw password). */
 export function getAdminSigningSecret(): string {
-  const explicit = process.env.ADMIN_SESSION_SECRET?.trim();
-  if (explicit) return explicit;
   const u = resolvedUsername();
   const p = resolvedPassword();
   return createHmac('sha256', DERIVED_KEY_PEPPER).update(`${u}\x00${p}`).digest('base64url');

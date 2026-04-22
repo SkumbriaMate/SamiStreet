@@ -4,9 +4,13 @@ import { brandLogoSrc } from '../lib/siteDisplay';
 import {
   META_DESCRIPTION,
   META_KEYWORDS,
+  SHARE_LOGO_PUBLIC_PATH,
   SITE_TITLE,
+  absolutePublicUrl,
   buildRestaurantJsonLd,
   getPublicOrigin,
+  shareOgDescription,
+  shareOgTitle,
 } from '../seo/siteInfo';
 
 function upsertMeta(attr: 'name' | 'property', key: string, content: string) {
@@ -55,12 +59,19 @@ export function SeoHead() {
 
     const canonical = `${origin}/`;
     const logo = brandLogoSrc(site);
+    const fallbackShareImg = `${origin}${SHARE_LOGO_PUBLIC_PATH}`;
     const ogImage =
-      (site.seoOgImageUrl || '').trim() || logo || (site.faviconUrl || '').trim() || '';
+      absolutePublicUrl(origin, (site.seoOgImageUrl || '').trim()) ||
+      absolutePublicUrl(origin, logo) ||
+      absolutePublicUrl(origin, (site.faviconUrl || '').trim()) ||
+      fallbackShareImg;
 
     const title = site.seoTitle ?? SITE_TITLE;
     const description = site.seoDescription ?? META_DESCRIPTION;
     const keywords = site.seoKeywords ?? META_KEYWORDS;
+    const ogTitle = shareOgTitle(site);
+    const ogDescription = shareOgDescription(site, description);
+    const siteName = (site.companyName ?? '').trim() || title.split('—')[0]?.trim() || title;
 
     document.title = title;
     upsertMeta('name', 'description', description);
@@ -68,29 +79,20 @@ export function SeoHead() {
     upsertLink('canonical', canonical);
 
     upsertMeta('property', 'og:type', 'website');
-    upsertMeta('property', 'og:site_name', title.split('—')[0]?.trim() ?? title);
-    upsertMeta('property', 'og:title', title);
-    upsertMeta('property', 'og:description', description);
+    upsertMeta('property', 'og:site_name', siteName);
+    upsertMeta('property', 'og:title', ogTitle);
+    upsertMeta('property', 'og:description', ogDescription);
     upsertMeta('property', 'og:url', canonical);
-    if (ogImage) {
-      upsertMeta('property', 'og:image', ogImage);
-      upsertMeta('property', 'og:image:alt', site.navLogoAlt ?? 'Logo');
-    } else {
-      removeMeta('property', 'og:image');
-      removeMeta('property', 'og:image:alt');
-    }
+    upsertMeta('property', 'og:image', ogImage);
+    upsertMeta('property', 'og:image:alt', site.navLogoAlt ?? 'Sami Street Bistro');
     upsertMeta('property', 'og:locale', 'ka_GE');
 
     upsertMeta('name', 'twitter:card', 'summary_large_image');
-    upsertMeta('name', 'twitter:title', title);
-    upsertMeta('name', 'twitter:description', description);
-    if (ogImage) {
-      upsertMeta('name', 'twitter:image', ogImage);
-    } else {
-      removeMeta('name', 'twitter:image');
-    }
+    upsertMeta('name', 'twitter:title', ogTitle);
+    upsertMeta('name', 'twitter:description', ogDescription);
+    upsertMeta('name', 'twitter:image', ogImage);
 
-    const fav = (site.faviconUrl || '').trim() || logo;
+    const fav = (site.faviconUrl || '').trim() || logo || `${origin}${SHARE_LOGO_PUBLIC_PATH}`;
     if (fav) {
       const iconType = fav.endsWith('.svg')
         ? 'image/svg+xml'
@@ -104,7 +106,8 @@ export function SeoHead() {
       removeSeoInjectedLinks('apple-touch-icon');
     }
 
-    const jsonImage = (site.seoOgImageUrl || '').trim() || logo || null;
+    const jsonImage =
+      (site.seoOgImageUrl || '').trim() || logo || `${origin}${SHARE_LOGO_PUBLIC_PATH}` || null;
     const existing = document.getElementById('seo-restaurant-jsonld');
     if (existing) existing.remove();
 
@@ -129,6 +132,11 @@ export function SeoHead() {
     site.aboutLogoUrl,
     site.navLogoAlt,
     site.faviconUrl,
+    site.companyName,
+    site.heroTitlePart1,
+    site.heroTitlePart2,
+    site.heroTitlePart3,
+    site.heroBody,
   ]);
 
   return null;

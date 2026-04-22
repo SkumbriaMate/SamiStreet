@@ -1,4 +1,8 @@
 import { LOCATION_ROWS, MAPS_COORDS, SOCIAL_LINKS, STREET_ADDRESS_KA } from '../data/content';
+import type { SiteSettings } from '../types/siteSettings';
+
+/** Public file in `/public` — default favicon + OG/Twitter image when CMS has no custom asset. */
+export const SHARE_LOGO_PUBLIC_PATH = '/sami-logo-fotor-20260420123031.png';
 
 /** Public site URL — production: `NEXT_PUBLIC_SITE_URL=https://yourdomain.ge` */
 export const SITE_URL_ENV = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '');
@@ -33,6 +37,45 @@ export const META_KEYWORDS = [
   'shawarma Kutaisi',
   'David Aghmashenebeli Avenue 111',
 ].join(', ');
+
+/** Hero title line (three parts concatenated). */
+export function shareHeroHeadline(
+  site: Pick<SiteSettings, 'heroTitlePart1' | 'heroTitlePart2' | 'heroTitlePart3'>,
+): string {
+  return `${site.heroTitlePart1 ?? ''}${site.heroTitlePart2 ?? ''}${site.heroTitlePart3 ?? ''}`.trim();
+}
+
+/** Open Graph / Twitter title: company name + hero headline, else SEO title. */
+export function shareOgTitle(
+  site: Pick<
+    SiteSettings,
+    'companyName' | 'seoTitle' | 'heroTitlePart1' | 'heroTitlePart2' | 'heroTitlePart3'
+  >,
+): string {
+  const co = (site.companyName ?? SITE_NAME_EN).trim();
+  const hero = shareHeroHeadline(site);
+  if (hero) return `${co} — ${hero}`;
+  return (site.seoTitle ?? SITE_TITLE).trim();
+}
+
+/** Open Graph / Twitter description — hero body first, else SEO description. */
+export function shareOgDescription(
+  site: Pick<SiteSettings, 'heroBody' | 'seoDescription'>,
+  fallbackDescription: string,
+): string {
+  const h = (site.heroBody ?? '').trim();
+  if (h) return h;
+  return ((site.seoDescription ?? '').trim() || fallbackDescription).trim();
+}
+
+/** Turn a site-relative or absolute URL into an absolute URL for og:image / Twitter. */
+export function absolutePublicUrl(origin: string, pathOrUrl: string): string {
+  const p = pathOrUrl.trim();
+  if (!p) return '';
+  if (p.startsWith('http://') || p.startsWith('https://')) return p;
+  const base = origin.replace(/\/$/, '');
+  return `${base}${p.startsWith('/') ? '' : '/'}${p}`;
+}
 
 export function getPublicOrigin(): string {
   if (SITE_URL_ENV) return SITE_URL_ENV;

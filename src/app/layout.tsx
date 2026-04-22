@@ -1,10 +1,23 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { defaultSiteSettings } from '@/data/defaultSiteSettings';
+import {
+  META_DESCRIPTION,
+  META_KEYWORDS,
+  SHARE_LOGO_PUBLIC_PATH,
+  SITE_TITLE,
+  SITE_URL_ENV,
+  shareOgDescription,
+  shareOgTitle,
+} from '@/seo/siteInfo';
+
+const defaults = defaultSiteSettings();
+const metadataBaseUrl = `${(SITE_URL_ENV || 'http://localhost:3000').replace(/\/$/, '')}/`;
 
 export const metadata: Metadata = {
-  title: 'სამი სტრიტ ბისტრო · Sami Street Bistro — ქუთაისი | შაურმა, თასები, ჰოთდოგები',
-  description:
-    'სამი სტრიტ ბისტრო — ქუთაისის სტრიტ ფუდი: შაურმა, რაისის თასები, ჰოთდოგები და სნეკები. დავით აღმაშენებლის გამზირი 111. მენიუ, საათები და მდებარეობა საიტზე.',
+  metadataBase: new URL(metadataBaseUrl),
+  title: SITE_TITLE,
+  description: META_DESCRIPTION,
   keywords: [
     'სამი სტრიტ ბისტრო',
     'Sami Street Bistro',
@@ -26,8 +39,28 @@ export const metadata: Metadata = {
     'format-detection': 'telephone=yes',
   },
   icons: {
-    icon:
-      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0a08'/%3E%3Cpath fill='%233ECF8E' d='M8 22V10h4l4 7 4-7h4v12h-3.5v-7.5L15 22l-3.5-7.5V22H8z'/%3E%3C/svg%3E",
+    icon: [{ url: SHARE_LOGO_PUBLIC_PATH, type: 'image/png' }],
+    apple: [{ url: SHARE_LOGO_PUBLIC_PATH, sizes: '180x180', type: 'image/png' }],
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'ka_GE',
+    url: '/',
+    siteName: (defaults.companyName ?? 'Sami Street Bistro').trim(),
+    title: shareOgTitle(defaults),
+    description: shareOgDescription(defaults, META_DESCRIPTION),
+    images: [
+      {
+        url: SHARE_LOGO_PUBLIC_PATH,
+        alt: (defaults.navLogoAlt ?? 'Sami Street Bistro').trim(),
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: shareOgTitle(defaults),
+    description: shareOgDescription(defaults, META_DESCRIPTION),
+    images: [SHARE_LOGO_PUBLIC_PATH],
   },
 };
 
